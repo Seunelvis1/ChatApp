@@ -1,64 +1,60 @@
 import React, {useState} from 'react'
 import seun from "../img/experiment.png";
-import {useNaigate} from "react-router-dom"
+import {Link, useNavigate} from "react-router-dom"
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth, storage } from "../firebase";
-import { getDownloadURL, ref, getStorage, uploadBytesResumable } from 'firebase/storage';
-import { async } from '@firebase/util';
-import { db, setDoc } from 'firebase/firestore';
+import { setDoc, doc } from 'firebase/firestore';
+import { getDownloadURL, ref,  uploadBytesResumable } from 'firebase/storage';
+import { db } from '../firebase';
 
 const Register = () => {
 const [err, setErr] = useState(false); 
 
 const navigate = useNavigate();
 const handleSubmit = async (e)=>{
-  e.preventDault()
+  e.preventDefault();
   const displayName = e.target[0].value;
   const email = e.target[1].value;
   const password = e.target[2].value;
-  const file = e.target[3].file[0];
-console.log(displayName);
+  
+  const file = e.target[3].files[0];
+
+ 
   try{
     const res = await createUserWithEmailAndPassword(auth, email, password);
     const storageRef = ref(storage, displayName);
-    const uploadTask = uploadBytesResumable(storageRef, file);
+     const uploadTask = uploadBytesResumable(storageRef, file);
 
     uploadTask.on(
-      // "state_changed",
-      // (snapshot) =>{
-      //   const progress = (snapshot.bytesTranseferred / snapshot.totalBytes) * 100;
-      //   console.log("upload is " + progress + "% done");
-
-      // }
-      (error) =>{
+ 
+       (error) =>{
         setErr(true);
-      },
-      () =>{
-        getDownloadURL(uploadTask.snapshot.ref).then( async(downloadURL) =>{
-          console.log("File avaialble at", downloadURL);
-          await updateProfile(res.user{
-            displayName,
+     },
+       () =>{
+         getDownloadURL(uploadTask.snapshot.ref).then( async(downloadURL) =>{
+           await updateProfile(res.user,{
+             displayName,
             photoURL:downloadURL,
-          });
+           });
           await setDoc(doc(db, "users", res.user.uid), {
-            uid: res.user.uid,
-            displayName,
-            email,
-            photoURL: downloadURL,
+             uid: res.user.uid,
+             displayName,
+             email,
+             photoURL: downloadURL,
           });
-          await setDoc(doc(db, "userChats", res.user.uid, {}));
-          navigate("/");
+           await setDoc(doc(db, "userchats", res.user.uid, {}));
+           navigate("/");
 
-        })
-      }
-    );
+         });
+       }
+     );
    
-  }catch(err){
-    setErr(true);
-  }
+   } catch(err){
+     setErr(true);
+   }
 
 
-}
+};
   return (
     <div className='formContainer'>
     <div className='formWrapper'>
@@ -76,7 +72,7 @@ console.log(displayName);
         <button>Sign up</button>
         {err && <span>{err}</span>}
         </form>
-        <p>You do have an account? Login</p>
+        <p>You do have an account? <Link to='/login'>Login</Link></p>
     </div>
     </div>
   )
