@@ -42,8 +42,8 @@ const handleSubmit = async (e)=>{
              email,
              photoURL: downloadURL,
           });
-           await setDoc(doc(db, "userchats", res.user.uid, {}));
-           navigate("/");
+           await setDoc(doc(db, "userChats", res.user.uid), {});
+           navigate('/');
 
          });
        }
